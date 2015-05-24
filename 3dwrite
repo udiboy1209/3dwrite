@@ -4,9 +4,10 @@ import sys
 fontfile = open("3d_font.txt");
 
 charmaps = fontfile.readlines();
+alpha = charmaps[0];
+charmaps=charmaps[1:]
 
-def ctoi(c):
-    alpha = "abcdefghijklmnopqrstuvwxyz"
+def index(c):
     return alpha.index(c)
 
 def write(text):
@@ -14,7 +15,11 @@ def write(text):
     lines = [""]*13;
     tot_max_wid=0
     for c in text:
-        ind = ctoi(c)-ctoi('a');
+        ind = index(c)
+	
+	if ind < 0:
+	    print "Character"+ c + " not found in font"
+	    return 
         cmap = charmaps[ind*14+1:ind*14+14]
         max_wid = max([len(cmap[i])-i for i in range(0,13)])-1
 
@@ -29,7 +34,7 @@ def write(text):
             else:
                 lines[i]+=new[-spaces:]
 
-        tot_max_wid+=max_wid+2
+        tot_max_wid+=max_wid+3
     
     for l in lines:
         print l
