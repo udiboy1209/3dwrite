@@ -8,6 +8,54 @@ charmaps = fontfile.readlines();
 alpha = charmaps[0];
 charmaps=charmaps[1:]
 
+def getColumns():
+    env = os.environ
+    def ioctl_GWINSZ(fd):
+        try:
+            import fcntl, termios, struct
+            cr = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ,
+                            '1234'))
+        except:
+            return
+        return cr
+    cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
+    if not cr:
+        try:
+            fd = os.open(os.ctermid(), os.O_RDONLY)
+            cr = ioctl_GWINSZ(fd)
+            os.close(fd)
+        except:
+            pass
+    if not cr:
+        cr = (env.get('LINES', 25), env.get('COLUMNS', 80))
+
+    return int(cr[1])
+
+def _find_getch():
+    try:
+        import termios
+    except ImportError:
+        # Non-POSIX. Return msvcrt's (Windows') getch.
+        import msvcrt
+        return msvcrt.getch
+
+    # POSIX system. Create and return a getch that manipulates the tty.
+    import tty
+    def _getch():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+    return _getch
+                                                                                                                                                
+getch=_find_getch()
+columns=getColumns()
+
 def index(c):
     return alpha.index(c)
 
@@ -38,19 +86,30 @@ def write(text):
         tot_max_wid+=max_wid+3
     
     for l in lines:
-        print l
+        print l + " "*(columns-len(l))
 
 if(len(sys.argv) > 1):
     if sys.argv[1] == '-i':
         os.system('clear')
         print "Interactive Mode. Type and press <Enter>"
+        word=""
         while True:
-            print " >",
-            inp=raw_input()
+            inp=getch()
             if inp=='C':
+                word=""
                 os.system('clear')
+                print "Interactive Mode. Type and press <Enter>"
+            elif ord(inp)==13 or inp==' ':
+                write(word)
+                print
+                word=""
             else:
-                write(inp.lower())
+                if ord(inp)==127:
+                    if len(word)>0: word=word[:-1]
+                else:
+                    word+=inp
+                write(word)
+                sys.stdout.write("\033[13A")
     else:
         write(sys.argv[1].lower())
 else:
