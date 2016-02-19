@@ -57,7 +57,10 @@ getch=_find_getch()
 columns=getColumns()
 
 def index(c):
-    return alpha.index(c)
+    try:
+        return alpha.index(c)
+    except:
+        return -1
 
 def write(text):
     #lines = [" "*i for i in xrange(0,13)];
@@ -99,7 +102,9 @@ if(len(sys.argv) > 1):
                 word=""
                 os.system('clear')
                 print "Interactive Mode. Type and press <Enter>"
-            elif ord(inp)==13 or inp==' ':
+            elif ord(inp)==3 or inp=='Q':
+                break;
+            elif ord(inp)==13: #or inp==' ':
                 write(word)
                 print
                 word=""
