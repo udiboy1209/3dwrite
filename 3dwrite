@@ -94,7 +94,7 @@ def write(text):
 if(len(sys.argv) > 1):
     if sys.argv[1] == '-i':
         os.system('clear')
-        print "Interactive Mode. Type and press <Enter>"
+        print "Interactive Mode. Type and press <Enter>. C to clear screen, Q or <Ctrl-C> to quit."
         word=""
         while True:
             inp=getch()
